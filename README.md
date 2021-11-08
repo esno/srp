@@ -14,7 +14,19 @@ your realmd database.
 
 ## build from source
 
-    git clone https://github.com/esno/srp.git && cd srp
-    mkdir build && cd build
-    cmake .. && make
-    sudo make install
+srp works properly with at least lua 5.1
+
+    $ sudo apt-get install build-essential cmake git libssl-dev
+    $ sudo apt-get install lua5.1 liblua5.1-dev
+
+    $ git clone https://github.com/esno/srp.git && cd srp
+    $ mkdir build && cd build
+    $ cmake .. && make
+    $ sudo make install
+
+### uninstall
+
+`make install` generates the file `install_manifest.txt` in your build directory.
+This can be used to delete all installed files.
+
+    $ xargs rm < install_manifest.txt

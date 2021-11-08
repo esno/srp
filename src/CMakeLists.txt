@@ -1,4 +1,4 @@
-add_library(bignum MODULE bignum.c)
+add_library(bignum MODULE bignum.c compat.c)
 
 set_target_properties(bignum PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(bignum PROPERTIES SOVERSION ${SOVERSION})
@@ -6,7 +6,7 @@ set_target_properties(bignum PROPERTIES PREFIX "")
 
 target_link_libraries(bignum ${OPENSSL_LIBRARIES})
 
-add_library(hash MODULE hash.c)
+add_library(hash MODULE hash.c compat.c)
 
 set_target_properties(hash PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(hash PROPERTIES SOVERSION ${SOVERSION})

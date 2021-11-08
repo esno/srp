@@ -8,6 +8,8 @@
 
 #define SRP_SHA1_MTABLE "sha1_mtable"
 
+#include <srpcompat.h>
+
 typedef struct {
   SHA_CTX shactx;
   unsigned char digest[SHA_DIGEST_LENGTH];

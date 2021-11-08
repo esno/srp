@@ -5,6 +5,8 @@
 
 #include <openssl/bn.h>
 
+#include <srpcompat.h>
+
 #define SRP_BIGNUM_MTABLE "bignum_meta"
 
 typedef struct {
