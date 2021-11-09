@@ -70,7 +70,7 @@ static int hash_sha1_tostring(lua_State *L) {
   for (i = 0; i < SHA_DIGEST_LENGTH; ++i)
     sprintf(&digest[i * 2], "%02x", udata->digest[i]);
 
-  digest[41] = '\n';
+  digest[41] = '\0';
   lua_pushstring(L, digest);
 
   return 1;
