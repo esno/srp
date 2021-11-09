@@ -38,10 +38,6 @@ function _M.mkverifier(identifier, salt)
   local N = bignum.new()
   N:hex2bn(_M.N)
 
-  --  int BN_mod_exp(BIGNUM *r, BIGNUM *a, const BIGNUM *p,
-  --       const BIGNUM *m, BN_CTX *ctx);
-  -- (r=a^p % m)
-  --
   -- v = g ^ x % N
   local v = g:mod_exp(x, N)
 

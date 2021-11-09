@@ -1,0 +1,21 @@
+name: releng
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  archlinux:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: prepare
+        run: |
+          pacman -Sy --noconfirm base-devel cmake lua openssl
+      - name: build
+        run: |
+          mkdir build; cd build
+          cmake ..
+          make
