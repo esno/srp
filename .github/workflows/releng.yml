@@ -5,7 +5,7 @@ on:
       - master
 
 jobs:
-  archlinux:
+  lua54:
     runs-on: ubuntu-latest
     container: archlinux:latest
     steps:
@@ -22,3 +22,57 @@ jobs:
           make install
       - name: test
         run: lua test.lua
+
+  lua53:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: prepare
+        run: |
+          pacman -Sy --noconfirm base-devel cmake lua53 openssl
+      - name: build
+        run: |
+          mkdir build; cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+          make
+          make install
+      - name: test
+        run: lua5.3 test.lua
+
+  lua52:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: prepare
+        run: |
+          pacman -Sy --noconfirm base-devel cmake lua52 openssl
+      - name: build
+        run: |
+          mkdir build; cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+          make
+          make install
+      - name: test
+        run: lua5.2 test.lua
+
+  lua51:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: prepare
+        run: |
+          pacman -Sy --noconfirm base-devel cmake lua51 openssl
+      - name: build
+        run: |
+          mkdir build; cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+          make
+          make install
+      - name: test
+        run: lua5.1 test.lua
