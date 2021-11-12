@@ -5,74 +5,42 @@ on:
       - master
 
 jobs:
-  lua54:
+  archlinux:
     runs-on: ubuntu-latest
     container: archlinux:latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-      - name: prepare
-        run: |
-          pacman -Sy --noconfirm base-devel cmake lua openssl
-      - name: build
-        run: |
-          mkdir build; cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-          make
-          make install
-      - name: test
-        run: lua test.lua
 
-  lua53:
-    runs-on: ubuntu-latest
-    container: archlinux:latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-      - name: prepare
-        run: |
-          pacman -Sy --noconfirm base-devel cmake lua53 openssl
-      - name: build
-        run: |
-          mkdir build; cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-          make
-          make install
-      - name: test
-        run: lua5.3 test.lua
+    strategy:
+      matrix:
+        include:
+          - lua-version: 5.4
+            pkg: lua
+            bin: lua
+          - lua-version: 5.3
+            pkg: lua53
+            bin: lua5.3
+          - lua-version: 5.2
+            pkg: lua52
+            bin: lua5.2
+          - lua-version: 5.1
+            pkg: lua51
+            bin: lua5.1
 
-  lua52:
-    runs-on: ubuntu-latest
-    container: archlinux:latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-      - name: prepare
-        run: |
-          pacman -Sy --noconfirm base-devel cmake lua52 openssl
-      - name: build
-        run: |
-          mkdir build; cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-          make
-          make install
-      - name: test
-        run: lua5.2 test.lua
+    name: lua ${{ matrix.lua-version }}
 
-  lua51:
-    runs-on: ubuntu-latest
-    container: archlinux:latest
     steps:
       - name: checkout
         uses: actions/checkout@v2
+
       - name: prepare
         run: |
-          pacman -Sy --noconfirm base-devel cmake lua51 openssl
+          pacman -Sy --noconfirm base-devel cmake openssl ${{ matrix.pkg }}
+
       - name: build
         run: |
           mkdir build; cd build
           cmake .. -DCMAKE_INSTALL_PREFIX=/usr
           make
           make install
+
       - name: test
-        run: lua5.1 test.lua
+        run: ${{ matrix.bin }} test.lua
