@@ -2,20 +2,21 @@ local bignum = require("bignum")
 local hash = require("hash")
 
 local _M = {
-  SALT_BYTE_SIZE = 32,
+  SALT_NUM_BYTES = 32,
 
   g = 7,
   N = "894B645E89E1535BBDAD5B8B290650530801B18EBFBF5E8FAB3C82872A3E9BB7"
 }
 
-function _M.mkverifier(identifier, salt)
+function _M.mkverifier(username, password, salt)
+  local identifier = _M.hash(username, password)
   local s
 
   if type(salt) == "string" then
     s = bignum.new()
     s:hex2bn(salt)
   else
-    s = bignum.rand(_M.SALT_BYTE_SIZE * 8)
+    s = bignum.rand(_M.SALT_NUM_BYTES * 8)
   end
 
   if s:is_zero() then

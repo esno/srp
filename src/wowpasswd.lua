@@ -11,8 +11,7 @@ local username = arg[1]
 io.write("Password: ")
 local password = io.read()
 
-local identifier = srp.hash(username, password)
-local v, s = srp.mkverifier(identifier)
+local v, s = srp.mkverifier(username, password)
 
 print("v: " .. tostring(v))
 print("s: " .. tostring(s))

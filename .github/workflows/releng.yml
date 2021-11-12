@@ -17,5 +17,8 @@ jobs:
       - name: build
         run: |
           mkdir build; cd build
-          cmake ..
+          cmake .. -DCMAKE_INSTALL_PREFIX=/usr
           make
+          make install
+      - name: test
+        run: lua test.lua
