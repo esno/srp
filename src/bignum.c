@@ -28,6 +28,13 @@ static int bignum_add(lua_State *L) {
   return 1;
 }
 
+static int bignum_gc(lua_State *L) {
+  bignum_udata_t *udata = luaL_checkudata(L, 1, SRP_BIGNUM_MTABLE);
+  BN_free(udata->bn);
+
+  return 0;
+}
+
 static int bignum_bin2bn(lua_State *L) {
   bignum_udata_t *udata = luaL_checkudata(L, 1, SRP_BIGNUM_MTABLE);
   size_t n = luaL_checknumber(L, 3);
@@ -207,6 +214,7 @@ static const struct luaL_Reg bignum[] = {
 
 static const struct luaL_Reg bignum_mtable[] = {
   { "__add", bignum_add },
+  { "__gc", bignum_gc },
   { "__mod", bignum_mod },
   { "__mul", bignum_mul },
   { "__tostring", bignum_tostring },
