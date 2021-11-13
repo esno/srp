@@ -5,7 +5,7 @@ on:
       - master
 
 jobs:
-  archlinux:
+  qa:
     runs-on: ubuntu-latest
     container: archlinux:latest
 
@@ -48,3 +48,23 @@ jobs:
 
       - name: test
         run: ${{ matrix.bin }} test.lua
+
+  pkg:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    needs: qa
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: prepare
+        run: |
+          pacman -Sy --noconfirm base-devel git cmake openssl lua lua53 lua52 lua51
+          useradd -m -d /__w/srp/srp -s /bin/bash build
+          chown -R build /__w/srp/srp
+
+      - name: package
+        run: |
+          cd dist
+          su build -c makepkg

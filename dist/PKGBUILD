@@ -1,0 +1,66 @@
+# Maintainer: Matthias Hauber <matthiashauber@googlemail.com>
+
+pkgname=('lua-srp' 'lua53-srp' 'lua52-srp' 'lua51-srp' 'wowpasswd')
+arch=('x86_64')
+url='https://github.com/esno/srp'
+license=('MIT')
+makedepends=('lua' 'lua53' 'lua52' 'lua51' 'openssl' 'git')
+pkgdesc='secure remote password protocol for WoW emulation'
+depends=('openssl')
+source=('git+https://github.com/esno/srp.git#branch=master')
+md5sums=('SKIP')
+pkgrel=1
+pkgver=0299d09
+
+pkgver() {
+  cd "$srcdir/srp"
+  git rev-parse --short HEAD
+}
+
+_build() {
+  mkdir "$srcdir/srp/build-$1"
+  pushd "$srcdir/srp/build-$1"
+  cmake .. -D$1=1 -DCMAKE_INSTALL_PREFIX=/usr
+  make
+  popd
+}
+
+_package() {
+  pushd "$srcdir/srp/build-$1"
+  make DESTDIR="$pkgdir" install
+  popd
+
+  rm -rf "$pkgdir/usr/bin"
+}
+
+build() {
+  _build "LUA54"
+  _build "LUA53"
+  _build "LUA52"
+  _build "LUA51"
+}
+
+package_lua-srp() {
+  depends+=('lua54')
+  _package "LUA54"
+}
+
+package_lua53-srp() {
+  depends+=('lua53')
+  _package "LUA53"
+}
+
+package_lua52-srp() {
+  depends+=('lua52')
+  _package "LUA52"
+}
+
+package_lua51-srp() {
+  depends+=('lua51')
+  _package "LUA51"
+}
+
+package_wowpasswd() {
+  depends+=('lua-srp')
+  install -Dm0755 "$srcdir/srp/src/wowpasswd.lua" "$pkgdir/usr/bin/wowpasswd"
+}
