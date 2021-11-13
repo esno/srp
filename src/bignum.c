@@ -203,6 +203,7 @@ static int bignum_tostring(lua_State *L) {
   }
 
   lua_pushstring(L, number);
+  OPENSSL_free((void *) number);
   return 1;
 }
 
