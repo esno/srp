@@ -15,15 +15,19 @@ jobs:
           - lua-version: 5.4
             pkg: lua
             bin: lua
+            ver: LUA54
           - lua-version: 5.3
             pkg: lua53
             bin: lua5.3
+            ver: LUA53
           - lua-version: 5.2
             pkg: lua52
             bin: lua5.2
+            ver: LUA52
           - lua-version: 5.1
             pkg: lua51
             bin: lua5.1
+            ver: LUA51
 
     name: lua ${{ matrix.lua-version }}
 
@@ -38,7 +42,7 @@ jobs:
       - name: build
         run: |
           mkdir build; cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+          cmake .. -D${{ matrix.ver }}=1 -DCMAKE_INSTALL_PREFIX=/usr
           make
           make install
 
