@@ -13,6 +13,21 @@ typedef struct {
   BIGNUM *bn;
 } bignum_udata_t;
 
+static int bignum_add(lua_State *L) {
+  bignum_udata_t *a = luaL_checkudata(L, 1, SRP_BIGNUM_MTABLE);
+  bignum_udata_t *b = luaL_checkudata(L, 2, SRP_BIGNUM_MTABLE);
+  bignum_udata_t *x = lua_newuserdata(L, sizeof(bignum_udata_t));
+
+  memset(x, 0, sizeof(bignum_udata_t));
+  x->bn = BN_new();
+  BN_add(x->bn, a->bn, b->bn);
+
+  luaL_getmetatable(L, SRP_BIGNUM_MTABLE);
+  lua_setmetatable(L, -2);
+
+  return 1;
+}
+
 static int bignum_bin2bn(lua_State *L) {
   bignum_udata_t *udata = luaL_checkudata(L, 1, SRP_BIGNUM_MTABLE);
   size_t n = luaL_checknumber(L, 3);
@@ -68,18 +83,6 @@ static int bignum_is_zero(lua_State *L) {
   return 1;
 }
 
-static int bignum_new(lua_State *L) {
-  bignum_udata_t *udata = lua_newuserdata(L, sizeof(bignum_udata_t));
-
-  memset(udata, 0, sizeof(bignum_udata_t));
-  udata->bn = BN_new();
-
-  luaL_getmetatable(L, SRP_BIGNUM_MTABLE);
-  lua_setmetatable(L, -2);
-
-  return 1;
-}
-
 static int bignum_mod_exp(lua_State *L) {
   bignum_udata_t *r = NULL;
   bignum_udata_t *a = luaL_checkudata(L, 1, SRP_BIGNUM_MTABLE);
@@ -93,6 +96,52 @@ static int bignum_mod_exp(lua_State *L) {
 
   BN_mod_exp(r->bn, a->bn, p->bn, m->bn, ctx);
   BN_CTX_free(ctx);
+
+  luaL_getmetatable(L, SRP_BIGNUM_MTABLE);
+  lua_setmetatable(L, -2);
+
+  return 1;
+}
+
+static int bignum_mod(lua_State *L) {
+  bignum_udata_t *a = luaL_checkudata(L, 1, SRP_BIGNUM_MTABLE);
+  bignum_udata_t *b = luaL_checkudata(L, 2, SRP_BIGNUM_MTABLE);
+  bignum_udata_t *x = lua_newuserdata(L, sizeof(bignum_udata_t));
+  BN_CTX *ctx = BN_CTX_new();
+
+  memset(x, 0, sizeof(bignum_udata_t));
+  x->bn = BN_new();
+  BN_mod(x->bn, a->bn, b->bn, ctx);
+  BN_CTX_free(ctx);
+
+  luaL_getmetatable(L, SRP_BIGNUM_MTABLE);
+  lua_setmetatable(L, -2);
+
+  return 1;
+}
+
+static int bignum_mul(lua_State *L) {
+  bignum_udata_t *a = luaL_checkudata(L, 1, SRP_BIGNUM_MTABLE);
+  bignum_udata_t *b = luaL_checkudata(L, 2, SRP_BIGNUM_MTABLE);
+  bignum_udata_t *x = lua_newuserdata(L, sizeof(bignum_udata_t));
+  BN_CTX *ctx = BN_CTX_new();
+
+  memset(x, 0, sizeof(bignum_udata_t));
+  x->bn = BN_new();
+  BN_mul(x->bn, a->bn, b->bn, ctx);
+  BN_CTX_free(ctx);
+
+  luaL_getmetatable(L, SRP_BIGNUM_MTABLE);
+  lua_setmetatable(L, -2);
+
+  return 1;
+}
+
+static int bignum_new(lua_State *L) {
+  bignum_udata_t *udata = lua_newuserdata(L, sizeof(bignum_udata_t));
+
+  memset(udata, 0, sizeof(bignum_udata_t));
+  udata->bn = BN_new();
 
   luaL_getmetatable(L, SRP_BIGNUM_MTABLE);
   lua_setmetatable(L, -2);
@@ -157,6 +206,9 @@ static const struct luaL_Reg bignum[] = {
 };
 
 static const struct luaL_Reg bignum_mtable[] = {
+  { "__add", bignum_add },
+  { "__mod", bignum_mod },
+  { "__mul", bignum_mul },
   { "__tostring", bignum_tostring },
   { "bin2bn", bignum_bin2bn },
   { "bn2bin", bignum_bn2bin },
