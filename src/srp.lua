@@ -29,6 +29,32 @@ function _M.mkhostephemeral(verifier)
   return ((v * 3) + gmod) % N, b
 end
 
+function _M.mksessionkey(userephemeral, userephemeral_l, B, b, verifier)
+  local A = bignum.new()
+  A:bin2bn(userephemeral, userephemeral_l)
+
+  local N = bignum.new()
+  N:hex2bn(_M.N)
+
+  if A:is_zero() or (A % N):is_zero() then
+    return nil
+  end
+
+  local sha = hash.sha1_init()
+  sha:update(string.reverse(A:bn2bin()), A:num_bytes())
+  sha:update(string.reverse(B:bn2bin()), B:num_bytes())
+  sha:final()
+
+  local u = bignum.new()
+  local digest, digest_l = sha:get_digest()
+  u:bin2bn(digest, digest_l)
+
+  local v = bignum.new()
+  v:hex2bn(verifier)
+
+  return (A * v:mod_exp(u, N)):mod_exp(b, N)
+end
+
 function _M.mkverifier(username, password, salt)
   local identifier = _M.hash(username, password)
   local s
