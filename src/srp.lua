@@ -3,10 +3,31 @@ local hash = require("hash")
 
 local _M = {
   SALT_NUM_BYTES = 32,
+  EPHEMERAL_NUM_BYTES = 19,
 
   g = 7,
   N = "894B645E89E1535BBDAD5B8B290650530801B18EBFBF5E8FAB3C82872A3E9BB7"
 }
+
+function _M.mkhostephemeral(verifier)
+  local v = bignum.new()
+  v:hex2bn(verifier)
+
+  local b = bignum.new()
+  b:rand(_M.EPHEMERAL_NUM_BYTES * 8)
+
+  local g = bignum.new()
+  g:set_word(_M.g)
+  local N = bignum.new()
+  N:hex2bn(_M.N)
+
+  local gmod = g:mod_exp(b, N)
+  if gmod:num_bytes() > 32 then
+    return nil
+  end
+
+  return ((v * 3) + gmod) % N, b
+end
 
 function _M.mkverifier(username, password, salt)
   local identifier = _M.hash(username, password)
