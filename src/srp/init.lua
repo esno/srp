@@ -17,57 +17,6 @@ local _M = {
   k = 3
 }
 
--- # mkverifier
--- Generates the password verifier (v).
---
--- > username [string] The username (I) aka identifier.
--- > password [string] The password (P) of the account in plaintext.
--- > salt     [string] The salt (s) as hex string.
---                     If nil a new salt is generated.
---
--- <          [bignum] The password verifier (v) otherwise nil.
--- <          [bignum] The salt (s) otherwise nil.
-function _M.mkverifier(username, password, salt)
-  local identifier = _M.hash(username, password)
-  local s
-
-  if not identifier then
-    return nil
-  end
-
-  if type(salt) == "string" then
-    s = bignum.new()
-    s:hex2bn(salt)
-  else
-    s = bignum.rand(_M.SALT_NUM_BYTES * 8)
-  end
-
-  if s:is_zero() then
-    return nil
-  end
-
-  local IP, IP_l = identifier:get_digest()
-
-  local sha = hash:sha1_init()
-  sha:update(string.reverse(s:bn2bin()), s:num_bytes())
-  sha:update(IP, IP_l)
-  sha:final()
-  local digest, digest_l = sha:get_digest()
-
-  local x = bignum.new()
-  x:bin2bn(string.reverse(digest), digest_l)
-
-  local g = bignum.new()
-  g:set_word(_M.g)
-  local N = bignum.new()
-  N:hex2bn(_M.N)
-
-  -- v = g ^ x % N
-  local v = g:mod_exp(x, N)
-
-  return v, s
-end
-
 -- # hash
 -- Generates a hash of username and password.
 -- The username and password will be converted to uppercase letters.
@@ -132,6 +81,57 @@ function _M.hash_sessionkey(key)
 
   local K = bignum.new()
   return K:bin2bn(token, K1_l * 2)
+end
+
+-- # v
+-- Generates the password verifier (v).
+--
+-- > username [string] The username (I) aka identifier.
+-- > password [string] The password (P) of the account in plaintext.
+-- > salt     [string] The salt (s) as hex string.
+--                     If nil a new salt is generated.
+--
+-- <          [bignum] The password verifier (v) otherwise nil.
+-- <          [bignum] The salt (s) otherwise nil.
+function _M.v(username, password, salt)
+  local identifier = _M.hash(username, password)
+  local s
+
+  if not identifier then
+    return nil
+  end
+
+  if type(salt) == "string" then
+    s = bignum.new()
+    s:hex2bn(salt)
+  else
+    s = bignum.rand(_M.SALT_NUM_BYTES * 8)
+  end
+
+  if s:is_zero() then
+    return nil
+  end
+
+  local IP, IP_l = identifier:get_digest()
+
+  local sha = hash:sha1_init()
+  sha:update(string.reverse(s:bn2bin()), s:num_bytes())
+  sha:update(IP, IP_l)
+  sha:final()
+  local digest, digest_l = sha:get_digest()
+
+  local x = bignum.new()
+  x:bin2bn(string.reverse(digest), digest_l)
+
+  local g = bignum.new()
+  g:set_word(_M.g)
+  local N = bignum.new()
+  N:hex2bn(_M.N)
+
+  -- v = g ^ x % N
+  local v = g:mod_exp(x, N)
+
+  return v, s
 end
 
 return _M

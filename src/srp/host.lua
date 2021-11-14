@@ -3,7 +3,7 @@ local hash = require("hash")
 
 local _M = require("srp")
 
--- # mkephemerals
+-- # B
 -- Generates a secret (b) and public (B) host ephemeral.
 -- b is a random number with length of `EPHEMERAL_NUM_BYTES`.
 -- The host MUST send B after receiving A from the client, never before.
@@ -12,7 +12,7 @@ local _M = require("srp")
 --
 -- <          [bignum] The public ephemeral B otherwise nil.
 -- <          [bignum] The secret ephemeral b otherwise nil.
-function _M.mkephemerals(verifier)
+function _M.B(verifier)
   local v = bignum.new()
   v:hex2bn(verifier)
 
@@ -33,7 +33,7 @@ function _M.mkephemerals(verifier)
   return (v * 3 + gmod) % N, b
 end
 
--- # mksessionkey
+-- # K
 -- Generates a strong session key (K).
 -- The host MUST abort the authentication attempt if A % N is zero.
 --
@@ -44,7 +44,7 @@ end
 -- > verifier        [string] The password verifier (v) as hex string.
 --
 -- <                 [bignum] The strong session key (K) otherwise nil.
-function _M.mksessionkey(userephemeral, userephemeral_l, B, b, verifier)
+function _M.K(userephemeral, userephemeral_l, B, b, verifier)
   local A = bignum.new()
   A:bin2bn(userephemeral, userephemeral_l)
 

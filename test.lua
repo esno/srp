@@ -29,7 +29,7 @@ local tests = {
     local s = "C87C2F705F3A3DE385F4F0E49386D6688061AF13DB4653AD434C82015ECA2969"
     local v = "4BEC2A9A0BE2296F67058E1C1AD6FA1EF1E73432BB6872617FA2E3DB7610BB90"
 
-    local verifier, salt = srp.mkverifier("username", "password", s)
+    local verifier, salt = srp.v("username", "password", s)
     if v == verifier:__tostring() and s == salt:__tostring() then chk = ok end
 
     return chk, desc
