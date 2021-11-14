@@ -7,7 +7,6 @@ local _M = require("srp")
 -- Generates a secret (b) and public (B) host ephemeral.
 -- b is a random number with length of `EPHEMERAL_NUM_BYTES`.
 -- The host MUST send B after receiving A from the client, never before.
--- The client MUST abort authentication if B % N is zero.
 --
 -- > verifier [string] The password verifier (v) as hex string.
 --
