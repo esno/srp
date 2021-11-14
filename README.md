@@ -1,6 +1,8 @@
 # SRP module for WoW emulators
 
-this lua module implements the SRP authentication mechanism for WoW emulators.
+this lua module implements the SRP authentication mechanism for WoW.
+SRP is a secure password-based authentication and key-exchange protocol.
+Using SRP avoids sending the plaintext password unencrypted.
 
 ## example client
 
