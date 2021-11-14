@@ -45,14 +45,14 @@ function _M.mksessionkey(userephemeral, userephemeral_l, B, b, verifier)
   sha:update(string.reverse(B:bn2bin()), B:num_bytes())
   sha:final()
 
-  local u = bignum.new()
   local digest, digest_l = sha:get_digest()
+  local u = bignum.new()
   u:bin2bn(digest, digest_l)
 
   local v = bignum.new()
   v:hex2bn(verifier)
 
-  return (A * v:mod_exp(u, N)):mod_exp(b, N)
+  return _M.hash_sessionkey((A * v:mod_exp(u, N)):mod_exp(b, N))
 end
 
 function _M.mkverifier(username, password, salt)
@@ -97,6 +97,41 @@ function _M.hash(username, password)
   sha:update(string.format("%s:%s", string.upper(username), string.upper(password)))
   sha:final()
   return sha
+end
+
+function _M.hash_sessionkey(key)
+  local S = key:bn2bin()
+  local pos
+
+  local token = ""
+  for i = 1, 16 do
+    pos = i * 2 - 1
+    token = token .. S:sub(pos, pos)
+  end
+
+  local sha = hash.sha1_init()
+  sha:update(token, 16)
+  sha:final()
+  local K1, K1_l = sha:get_digest()
+
+  local token = ""
+  for i = 1, 16 do
+    pos = i * 2
+    token = token .. S:sub(pos, pos)
+  end
+
+  local sha = hash.sha1_init()
+  sha:update(token, 16)
+  sha:final()
+  local K2, K2_l = sha:get_digest()
+
+  local token = ""
+  for i = 1, K1_l do
+    token = token .. K1:sub(i, i) .. K2:sub(i, i)
+  end
+
+  local K = bignum.new()
+  return K:bin2bn(token, K1_l * 2)
 end
 
 return _M
