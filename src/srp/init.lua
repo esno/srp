@@ -80,7 +80,8 @@ function _M.hash_sessionkey(key)
   end
 
   local K = bignum.new()
-  return K:bin2bn(token, K1_l * 2)
+  K:bin2bn(token, K1_l * 2)
+  return K
 end
 
 -- # v

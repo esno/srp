@@ -1,7 +1,9 @@
 local bignum = require("bignum")
 local hash = require("hash")
 
-local _M = require("srp")
+local srp = require("srp")
+
+local _M = {}
 
 -- # A
 -- Generates a secret (a) and public (A) user ephemeral.
@@ -11,17 +13,16 @@ local _M = require("srp")
 -- <          [bignum] The public ephemeral A otherwise nil.
 -- <          [bignum] The secret ephemeral a otherwise nil.
 function _M.A()
-  local a = bignum.new()
-  a:rand(_M.EPHEMERAL_NUM_BYTES * 8)
+  local a = bignum.rand(srp.EPHEMERAL_NUM_BYTES * 8)
 
   if a:is_zero() then
     return nil
   end
 
   local g = bignum.new()
-  g:set_word(_M.g)
+  g:set_word(srp.g)
   local N = bignum.new()
-  N:hex2bn(_M.N)
+  N:hex2bn(srp.N)
 
   -- A = g ^ a % N
   return g:mod_exp(a, N), a
@@ -37,16 +38,16 @@ end
 -- > x               [bignum] The private key (x).
 --
 -- <                 [bignum] The strong session key (K) otherwise nil.
-function _M.S(A, a, hostephemeral, hostephemeral_l, x)
+function _M.K(A, a, hostephemeral, hostephemeral_l, x)
   local B = bignum.new()
   B:bin2bn(hostephemeral, hostephemeral_l)
 
   local g = bignum.new()
-  g:set_word(_M.g)
+  g:set_word(srp.g)
   local N = bignum.new()
-  N:hex2bn(_M.N)
+  N:hex2bn(srp.N)
   local k = bignum.new()
-  k:set_word(_M.k)
+  k:set_word(srp.k)
 
   local sha = hash.sha1_init()
   sha:update(string.reverse(A:bn2bin()), A:num_bytes())
@@ -57,8 +58,10 @@ function _M.S(A, a, hostephemeral, hostephemeral_l, x)
   local u = bignum.new()
   u:bin2bn(digest, digest_l)
 
+  print("debug: [srp/user/K] may not work")
+
   local S = (B - k * g:mod_exp(x, N)):mod_exp(a + u * x, N)
-  return _M.hash_sessionkey(S)
+  return srp.hash_sessionkey(S)
 end
 
 -- # x
@@ -70,7 +73,7 @@ end
 --
 -- <          [bignum] The private key (x) otherwise nil
 function _M.x(username, password, salt)
-  local identifier = _M.hash(username, password)
+  local identifier = srp.hash(username, password)
   if not identifier then
     return nil
   end

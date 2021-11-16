@@ -1,7 +1,9 @@
 local bignum = require("bignum")
 local hash = require("hash")
 
-local _M = require("srp")
+local srp = require("srp")
+
+local _M = {}
 
 -- # B
 -- Generates a secret (b) and public (B) host ephemeral.
@@ -16,13 +18,14 @@ function _M.B(verifier)
   local v = bignum.new()
   v:hex2bn(verifier)
 
-  local b = bignum.new()
-  b:rand(_M.EPHEMERAL_NUM_BYTES * 8)
+  local b = bignum.rand(srp.EPHEMERAL_NUM_BYTES * 8)
 
   local g = bignum.new()
-  g:set_word(_M.g)
+  g:set_word(srp.g)
   local N = bignum.new()
-  N:hex2bn(_M.N)
+  N:hex2bn(srp.N)
+  local k = bignum.new()
+  k:set_word(srp.k)
 
   -- gmod = g ^ b % N
   local gmod = g:mod_exp(b, N)
@@ -30,7 +33,7 @@ function _M.B(verifier)
     return nil
   end
 
-  return (v * 3 + gmod) % N, b
+  return (v * k + gmod) % N, b
 end
 
 -- # K
@@ -49,7 +52,7 @@ function _M.K(userephemeral, userephemeral_l, B, b, verifier)
   A:bin2bn(userephemeral, userephemeral_l)
 
   local N = bignum.new()
-  N:hex2bn(_M.N)
+  N:hex2bn(srp.N)
 
   if A:is_zero() or (A % N):is_zero() then
     return nil
@@ -67,8 +70,10 @@ function _M.K(userephemeral, userephemeral_l, B, b, verifier)
   local v = bignum.new()
   v:hex2bn(verifier)
 
+  print("debug: [srp/host/K] may not work")
+
   -- S = (A * (v ^ u % N)) ^ b % N
-  return _M.hash_sessionkey((A * v:mod_exp(u, N)):mod_exp(b, N))
+  return srp.hash_sessionkey((A * v:mod_exp(u, N)):mod_exp(b, N))
 end
 
 return _M
