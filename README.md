@@ -16,10 +16,10 @@ your realmd database.
 
 ## build from source
 
-srp works properly with at least lua 5.1
+srp works properly with at least lua 5.3
 
     $ sudo apt-get install build-essential cmake git libssl-dev
-    $ sudo apt-get install lua5.1 liblua5.1-dev
+    $ sudo apt-get install lua5.3 liblua5.3-dev
 
     $ git clone https://github.com/esno/srp.git && cd srp
     $ mkdir build && cd build

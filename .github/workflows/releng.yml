@@ -20,14 +20,6 @@ jobs:
             pkg: lua53
             bin: lua5.3
             ver: LUA53
-          - lua-version: 5.2
-            pkg: lua52
-            bin: lua5.2
-            ver: LUA52
-          - lua-version: 5.1
-            pkg: lua51
-            bin: lua5.1
-            ver: LUA51
 
     name: lua ${{ matrix.lua-version }}
 
@@ -60,7 +52,7 @@ jobs:
 
       - name: prepare
         run: |
-          pacman -Sy --noconfirm base-devel git cmake openssl lua lua53 lua52 lua51
+          pacman -Sy --noconfirm base-devel git cmake openssl lua lua53
           useradd -m -d /__w/srp/srp -s /bin/bash build
           chown -R build /__w/srp/srp
 
