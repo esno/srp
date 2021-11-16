@@ -192,6 +192,21 @@ static int bignum_set_word(lua_State *L) {
   return 0;
 }
 
+static int bignum_sub(lua_State *L) {
+  bignum_udata_t *a = luaL_checkudata(L, 1, SRP_BIGNUM_MTABLE);
+  bignum_udata_t *b = luaL_checkudata(L, 2, SRP_BIGNUM_MTABLE);
+  bignum_udata_t *x = lua_newuserdata(L, sizeof(bignum_udata_t));
+
+  memset(x, 0, sizeof(bignum_udata_t));
+  x->bn = BN_new();
+  BN_sub(x->bn, a->bn, b->bn);
+
+  luaL_getmetatable(L, SRP_BIGNUM_MTABLE);
+  lua_setmetatable(L, -2);
+
+  return 1;
+}
+
 static int bignum_tostring(lua_State *L) {
   bignum_udata_t *udata = luaL_checkudata(L, 1, SRP_BIGNUM_MTABLE);
   unsigned char *number = BN_bn2hex(udata->bn);
@@ -218,6 +233,7 @@ static const struct luaL_Reg bignum_mtable[] = {
   { "__gc", bignum_gc },
   { "__mod", bignum_mod },
   { "__mul", bignum_mul },
+  { "__sub", bignum_sub },
   { "__tostring", bignum_tostring },
   { "bin2bn", bignum_bin2bn },
   { "bn2bin", bignum_bn2bin },
