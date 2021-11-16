@@ -49,7 +49,7 @@ end
 --
 -- <     [bignum] the strong session key (K).
 function _M.hash_sessionkey(key)
-  local S = key:bn2bin()
+  local S = string.reverse(key:bn2bin())
   local pos
 
   local token = ""
@@ -80,7 +80,7 @@ function _M.hash_sessionkey(key)
   end
 
   local K = bignum.new()
-  K:bin2bn(token, K1_l * 2)
+  K:bin2bn(string.reverse(token), K1_l * 2)
   return K
 end
 

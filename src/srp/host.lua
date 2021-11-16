@@ -49,7 +49,7 @@ end
 -- <                 [bignum] The strong session key (K) otherwise nil.
 function _M.K(userephemeral, userephemeral_l, B, b, verifier)
   local A = bignum.new()
-  A:bin2bn(userephemeral, userephemeral_l)
+  A:bin2bn(string.reverse(userephemeral), userephemeral_l)
 
   local N = bignum.new()
   N:hex2bn(srp.N)
@@ -65,12 +65,10 @@ function _M.K(userephemeral, userephemeral_l, B, b, verifier)
 
   local digest, digest_l = sha:get_digest()
   local u = bignum.new()
-  u:bin2bn(digest, digest_l)
+  u:bin2bn(string.reverse(digest), digest_l)
 
   local v = bignum.new()
   v:hex2bn(verifier)
-
-  print("debug: [srp/host/K] may not work")
 
   -- S = (A * (v ^ u % N)) ^ b % N
   return srp.hash_sessionkey((A * v:mod_exp(u, N)):mod_exp(b, N))

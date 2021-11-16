@@ -1,6 +1,8 @@
 local bignum = require("bignum")
 local hash = require("hash")
 local srp = require("srp")
+local host = require("srp/host")
+local user = require("srp/user")
 
 local ok = "\27[32mOK\27[0m "
 local nok = "\27[31mnok\27[0m"
@@ -31,6 +33,26 @@ local tests = {
 
     local verifier, salt = srp.v("username", "password", s)
     if v == verifier:__tostring() and s == salt:__tostring() then chk = ok end
+
+    return chk, desc
+  end,
+
+  function()
+    local desc = "check session key computation"
+    local chk = nil
+
+    local username = "username"
+    local password = "password"
+
+    local v, s = srp.v(username, password)
+    local A, a = user.A()
+    local x = user.x(username, password, s:__tostring())
+
+    local B, b = host.B(v:__tostring())
+    local K1 = user.K(A, a, string.reverse(B:bn2bin()), B:num_bytes(), x)
+    local K2 = host.K(string.reverse(A:bn2bin()), A:num_bytes(), B, b, v:__tostring())
+
+    if K1:__tostring() == K2:__tostring() then chk = ok end
 
     return chk, desc
   end
