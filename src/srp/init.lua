@@ -17,27 +17,7 @@ local _M = {
   k = 3
 }
 
--- # hash
--- Generates a hash of username and password.
--- The username and password will be converted to uppercase letters.
---
--- > username [string] The username (aka. identifier).
---                     Maximum length is `ACCOUNT_LENGTH`.
--- > password [string] The password of the account.
---
--- <          [sha1]   The sha1 userdata of USERNAME:PASSWORD.
-function _M.hash(username, password)
-  if username:len() > _M.ACCOUNT_LENGTH then
-    return nil
-  end
-
-  local sha = hash.sha1_init()
-  sha:update(string.format("%s:%s", string.upper(username), string.upper(password)))
-  sha:final()
-  return sha
-end
-
--- # hash_sessionkey
+-- # K
 -- Generates a strong session key (K).
 -- The session key will be split into two tokens.
 -- Odd character positions are the one while even positions
@@ -45,29 +25,26 @@ end
 -- Both will be hashed using sha1 and merged into strong session key.
 -- Token one fills all odd character positions, token two even positions.
 --
--- > key [bignum] the session key (S).
+-- > S [bignum] the session key (S).
 --
--- <     [bignum] the strong session key (K).
-function _M.hash_sessionkey(key)
-  local S = string.reverse(key:bn2bin())
+-- <   [bignum] the strong session key (K).
+function _M.K(S)
+  local S = string.reverse(S:bn2bin())
   local pos
 
-  local token = ""
+  local K1, K2 = "", ""
   for i = 1, 16 do
     pos = i * 2 - 1
-    token = token .. S:sub(pos, pos)
+    K1 = K1 .. S:sub(pos, pos)
+
+    pos = i * 2
+    K2 = K2 .. S:sub(pos, pos)
   end
 
   local sha = hash.sha1_init()
-  sha:update(token, 16)
+  sha:update(K1, 16)
   sha:final()
   local K1, K1_l = sha:get_digest()
-
-  local token = ""
-  for i = 1, 16 do
-    pos = i * 2
-    token = token .. S:sub(pos, pos)
-  end
 
   local sha = hash.sha1_init()
   sha:update(token, 16)
@@ -84,28 +61,64 @@ function _M.hash_sessionkey(key)
   return K
 end
 
--- # v
--- Generates the password verifier (v).
+-- # p
+-- Generates a hash of username and password (p).
+-- The username and password will be converted to uppercase letters.
 --
--- > username [string] The username (I) aka identifier.
--- > password [string] The password (P) of the account in plaintext.
--- > salt     [string] The salt (s) as hex string.
---                     If nil a new salt is generated.
+-- > username [string] The username (aka. identifier).
+--                     Maximum length is `ACCOUNT_LENGTH`.
+-- > password [string] The password of the account.
 --
--- <          [bignum] The password verifier (v) otherwise nil.
--- <          [bignum] The salt (s) otherwise nil.
-function _M.v(username, password, salt)
-  local identifier = _M.hash(username, password)
-  local s
-
-  if not identifier then
+-- <          [sha1]   The sha1 userdata of USERNAME:PASSWORD.
+function _M.p(username, password)
+  if username:len() > _M.ACCOUNT_LENGTH then
     return nil
   end
 
-  if type(salt) == "string" then
-    s = bignum.new()
-    s:hex2bn(salt)
-  else
+  local sha = hash.sha1_init()
+  sha:update(string.format("%s:%s", string.upper(username), string.upper(password)))
+  sha:final()
+  return sha
+end
+
+-- # u
+-- Generates a random scrambling parameter (u).
+--
+-- > A [bignum] The user public ephemeral (A).
+-- > B [bignum] The host public ephemeral (B).
+--
+-- <   [bignum] The random scrambling parameter (u).
+function _M.u(A, B)
+  local N = bignum.new()
+  N:hex2bn(_M.N)
+
+  if A:is_zero() or (A % N):is_zero() then
+    return nil
+  end
+
+  local sha = hash.sha1_init()
+  sha:update(string.reverse(A:bn2bin()), A:num_bytes())
+  sha:update(string.reverse(B:bn2bin()), B:num_bytes())
+  sha:final()
+
+  local digest, digest_l = sha:get_digest()
+  local u = bignum.new()
+  u:bin2bn(string.reverse(digest), digest_l)
+
+  return u
+end
+
+-- # v
+-- Generates the password verifier (v).
+--
+-- > p [sha1]   The hash of username and password (p) of the account.
+-- > s [bignum] The salt (s).
+--              If nil a new salt is generated.
+--
+-- <   [bignum] The password verifier (v) otherwise nil.
+-- <   [bignum] The salt (s) otherwise nil.
+function _M.v(p, s)
+  if not s then
     s = bignum.rand(_M.SALT_NUM_BYTES * 8)
   end
 
@@ -113,7 +126,7 @@ function _M.v(username, password, salt)
     return nil
   end
 
-  local IP, IP_l = identifier:get_digest()
+  local IP, IP_l = p:get_digest()
 
   local sha = hash:sha1_init()
   sha:update(string.reverse(s:bn2bin()), s:num_bytes())

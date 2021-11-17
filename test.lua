@@ -30,8 +30,13 @@ local tests = {
     -- username:password
     local s = "C87C2F705F3A3DE385F4F0E49386D6688061AF13DB4653AD434C82015ECA2969"
     local v = "4BEC2A9A0BE2296F67058E1C1AD6FA1EF1E73432BB6872617FA2E3DB7610BB90"
+    local _s = bignum.new()
+    _s:hex2bn(s)
+    local _v = bignum.new()
+    _v:hex2bn(v)
 
-    local verifier, salt = srp.v("username", "password", s)
+    local _p = srp.p("username", "password")
+    local verifier, salt = srp.v(_p, _s)
     if v == verifier:__tostring() and s == salt:__tostring() then chk = ok end
 
     return chk, desc
@@ -44,13 +49,16 @@ local tests = {
     local username = "username"
     local password = "password"
 
-    local v, s = srp.v(username, password)
-    local A, a = user.A()
-    local x = user.x(username, password, s:__tostring())
+    local p = srp.p(username, password)
 
-    local B, b = host.B(v:__tostring())
-    local K1 = user.K(A, a, string.reverse(B:bn2bin()), B:num_bytes(), x)
-    local K2 = host.K(string.reverse(A:bn2bin()), A:num_bytes(), B, b, v:__tostring())
+    local v, s = srp.v(p)
+    local A, a = user.A()
+    local x = user.x(p, s)
+
+    local B, b = host.B(v)
+    local u = srp.u(A, B)
+    local K1 = user.S_user(a, B, u, x)
+    local K2 = host.S_host(b, A, u, v)
 
     if K1:__tostring() == K2:__tostring() then chk = ok end
 

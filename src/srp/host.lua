@@ -10,14 +10,11 @@ local _M = {}
 -- b is a random number with length of `EPHEMERAL_NUM_BYTES`.
 -- The host MUST send B after receiving A from the client, never before.
 --
--- > verifier [string] The password verifier (v) as hex string.
+-- > v [bignum] The password verifier (v).
 --
--- <          [bignum] The public ephemeral B otherwise nil.
--- <          [bignum] The secret ephemeral b otherwise nil.
-function _M.B(verifier)
-  local v = bignum.new()
-  v:hex2bn(verifier)
-
+-- <   [bignum] The public ephemeral B otherwise nil.
+-- <   [bignum] The secret ephemeral b otherwise nil.
+function _M.B(v)
   local b = bignum.rand(srp.EPHEMERAL_NUM_BYTES * 8)
 
   local g = bignum.new()
@@ -36,21 +33,17 @@ function _M.B(verifier)
   return (v * k + gmod) % N, b
 end
 
--- # K
--- Generates a strong session key (K).
+-- # S_host
+-- Generates a session key (S).
 -- The host MUST abort the authentication attempt if A % N is zero.
 --
--- > userephemeral   [string] The user public ephemeral (A) as binary string.
--- > userephemeral_l [number] Length of A.
--- > B               [bignum] The host public ephemeral (B)
--- > b               [bignum] The host secret ephemeral (b).
--- > verifier        [string] The password verifier (v) as hex string.
+-- > b [bignum] The host secret ephemeral (b).
+-- > A [bignum] The user public ephemeral (A).
+-- > u [bignum] The random scrambling parameter (u).
+-- > v [bignum] The password verifier (v).
 --
--- <                 [bignum] The strong session key (K) otherwise nil.
-function _M.K(userephemeral, userephemeral_l, B, b, verifier)
-  local A = bignum.new()
-  A:bin2bn(string.reverse(userephemeral), userephemeral_l)
-
+-- <   [bignum] The session key (S) otherwise nil.
+function _M.S_host(b, A, u, v)
   local N = bignum.new()
   N:hex2bn(srp.N)
 
@@ -58,20 +51,8 @@ function _M.K(userephemeral, userephemeral_l, B, b, verifier)
     return nil
   end
 
-  local sha = hash.sha1_init()
-  sha:update(string.reverse(A:bn2bin()), A:num_bytes())
-  sha:update(string.reverse(B:bn2bin()), B:num_bytes())
-  sha:final()
-
-  local digest, digest_l = sha:get_digest()
-  local u = bignum.new()
-  u:bin2bn(string.reverse(digest), digest_l)
-
-  local v = bignum.new()
-  v:hex2bn(verifier)
-
   -- S = (A * (v ^ u % N)) ^ b % N
-  return srp.hash_sessionkey((A * v:mod_exp(u, N)):mod_exp(b, N))
+  return (A * v:mod_exp(u, N)):mod_exp(b, N)
 end
 
 return _M
