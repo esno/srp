@@ -28,16 +28,12 @@ local tests = {
     local chk = nil
 
     -- username:password
-    local s = "C87C2F705F3A3DE385F4F0E49386D6688061AF13DB4653AD434C82015ECA2969"
-    local v = "4BEC2A9A0BE2296F67058E1C1AD6FA1EF1E73432BB6872617FA2E3DB7610BB90"
-    local _s = bignum.new()
-    _s:hex2bn(s)
-    local _v = bignum.new()
-    _v:hex2bn(v)
+    local s = srp.hex2bn("C87C2F705F3A3DE385F4F0E49386D6688061AF13DB4653AD434C82015ECA2969")
+    local v = srp.hex2bn("4BEC2A9A0BE2296F67058E1C1AD6FA1EF1E73432BB6872617FA2E3DB7610BB90")
 
-    local _p = srp.p("username", "password")
-    local verifier, salt = srp.v(_p, _s)
-    if v == verifier:__tostring() and s == salt:__tostring() then chk = ok end
+    local p = srp.p("username", "password")
+    local verifier, salt = srp.v(p, s)
+    if v:__tostring() == verifier:__tostring() and s:__tostring() == salt:__tostring() then chk = ok end
 
     return chk, desc
   end,

@@ -17,6 +17,12 @@ local _M = {
   k = 3
 }
 
+function _M.hex2bn(hex)
+  local bn = bignum.new()
+  bn:hex2bn(hex)
+  return bn
+end
+
 -- # K
 -- Generates a strong session key (K).
 -- The session key will be split into two tokens.
