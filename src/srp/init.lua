@@ -17,6 +17,27 @@ local _M = {
   k = 3
 }
 
+-- # A
+-- Generates a secret (a) and public (A) user ephemeral.
+-- a is a random number with length of `EPHEMERAL_NUM_BYTES`.
+-- The client MUST abort authentication if B % N is zero.
+--
+-- <          [bignum] The public ephemeral A otherwise nil.
+-- <          [bignum] The secret ephemeral a otherwise nil.
+function _M.A()
+  local a = bignum.rand(_M.EPHEMERAL_NUM_BYTES * 8)
+
+  if a:is_zero() then
+    return nil
+  end
+
+  local g = _M.dec2bn(_M.g)
+  local N = _M.hex2bn(_M.N)
+
+  -- A = g ^ a % N
+  return g:mod_exp(a, N), a
+end
+
 -- # bin2bn
 -- Converts a binary string to bignum.
 -- The binary string will be reversed before conversion.
@@ -40,6 +61,43 @@ end
 -- <    [string] The binary string representing the bignum.
 function _M.bn2bin(bn)
   return string.reverse(bn:bn2bin())
+end
+
+-- # B
+-- Generates a secret (b) and public (B) host ephemeral.
+-- b is a random number with length of `EPHEMERAL_NUM_BYTES`.
+-- The host MUST send B after receiving A from the client, never before.
+--
+-- > v [bignum] The password verifier (v).
+--
+-- <   [bignum] The public ephemeral B otherwise nil.
+-- <   [bignum] The secret ephemeral b otherwise nil.
+function _M.B(v)
+  local b = bignum.rand(_M.EPHEMERAL_NUM_BYTES * 8)
+
+  local g = _M.dec2bn(_M.g)
+  local N = _M.hex2bn(_M.N)
+  local k = _M.dec2bn(_M.k)
+
+  -- gmod = g ^ b % N
+  local gmod = g:mod_exp(b, N)
+  if gmod:num_bytes() > 32 then
+    return nil
+  end
+
+  return (v * k + gmod) % N, b
+end
+
+-- # dec2bn
+-- Converts a decimal number to bignum.
+--
+-- > dec [number] The decimal number.
+--
+-- <     [bignum] The number as bignum.
+function _M.dec2bn(dec)
+  local bn = bignum.new()
+  bn:set_word(dec)
+  return bn
 end
 
 -- # hex2bn

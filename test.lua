@@ -50,9 +50,9 @@ local tests = {
 
     local x, s = srp.x(p)
     local v = srp.v(x)
-    local A, a = user.A()
+    local A, a = srp.A()
 
-    local B, b = host.B(v)
+    local B, b = srp.B(v)
     local u = srp.u(A, B)
     local K1 = user.S_user(a, B, u, x)
     local K2 = host.S_host(b, A, u, v)

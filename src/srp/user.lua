@@ -5,29 +5,6 @@ local srp = require("srp")
 
 local _M = {}
 
--- # A
--- Generates a secret (a) and public (A) user ephemeral.
--- a is a random number with length of `EPHEMERAL_NUM_BYTES`.
--- The client MUST abort authentication if B % N is zero.
---
--- <          [bignum] The public ephemeral A otherwise nil.
--- <          [bignum] The secret ephemeral a otherwise nil.
-function _M.A()
-  local a = bignum.rand(srp.EPHEMERAL_NUM_BYTES * 8)
-
-  if a:is_zero() then
-    return nil
-  end
-
-  local g = bignum.new()
-  g:set_word(srp.g)
-  local N = bignum.new()
-  N:hex2bn(srp.N)
-
-  -- A = g ^ a % N
-  return g:mod_exp(a, N), a
-end
-
 -- # S_user
 -- Generates a session key (S).
 --
