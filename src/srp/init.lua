@@ -9,14 +9,45 @@ local _M = {
   -- Maximum length of account name
   ACCOUNT_LENGTH = 16,
 
-  -- generator
+  -- Generator
   g = 7,
-  -- prime
+  -- Prime
   N = "894B645E89E1535BBDAD5B8B290650530801B18EBFBF5E8FAB3C82872A3E9BB7",
-  -- multiplier
+  -- Multiplier
   k = 3
 }
 
+-- # bin2bn
+-- Converts a binary string to bignum.
+-- The binary string will be reversed before conversion.
+--
+-- > bin [string] A binary string.
+-- > l   [number] The length of the binary string.
+--
+-- <     [bignum] The bignum representing the binary string.
+function _M.bin2bn(bin, l)
+  local bn = bignum.new()
+  bn:bin2bn(string.reverse(bin), l)
+  return bn
+end
+
+-- # bn2bin
+-- Converts a bignum to binary string.
+-- The binary string will be reversed after conversion.
+--
+-- > bn [bignum] The bignum to convert.
+--
+-- <    [string] The binary string representing the bignum.
+function _M.bn2bin(bn)
+  return string.reverse(bn:bn2bin())
+end
+
+-- # hex2bn
+-- Converts a hexadecimal string to bignum.
+--
+-- > hex [string] Hexadecimal string to convert.
+--
+-- <     [bignum] The bignum representing the hexadecimal string.
 function _M.hex2bn(hex)
   local bn = bignum.new()
   bn:hex2bn(hex)
@@ -35,7 +66,7 @@ end
 --
 -- <   [bignum] the strong session key (K).
 function _M.K(S)
-  local S = string.reverse(S:bn2bin())
+  local S = _M.bn2bin(S)
   local pos
 
   local K1, K2 = "", ""
@@ -62,9 +93,7 @@ function _M.K(S)
     token = token .. K1:sub(i, i) .. K2:sub(i, i)
   end
 
-  local K = bignum.new()
-  K:bin2bn(string.reverse(token), K1_l * 2)
-  return K
+  return _M.bin2bn(token, K1_l * 2)
 end
 
 -- # p
@@ -103,27 +132,40 @@ function _M.u(A, B)
   end
 
   local sha = hash.sha1_init()
-  sha:update(string.reverse(A:bn2bin()), A:num_bytes())
-  sha:update(string.reverse(B:bn2bin()), B:num_bytes())
+  sha:update(_M.bn2bin(A), A:num_bytes())
+  sha:update(_M.bn2bin(B), B:num_bytes())
   sha:final()
 
   local digest, digest_l = sha:get_digest()
-  local u = bignum.new()
-  u:bin2bn(string.reverse(digest), digest_l)
-
-  return u
+  return _M.bin2bn(digest, digest_l)
 end
 
 -- # v
 -- Generates the password verifier (v).
 --
--- > p [sha1]   The hash of username and password (p) of the account.
--- > s [bignum] The salt (s).
---              If nil a new salt is generated.
+-- > x [bignum] The private key (x).
 --
 -- <   [bignum] The password verifier (v) otherwise nil.
+function _M.v(x)
+  local g = bignum.new()
+  g:set_word(_M.g)
+  local N = bignum.new()
+  N:hex2bn(_M.N)
+
+  -- v = g ^ x % N
+  return g:mod_exp(x, N)
+end
+
+-- # x
+-- Generates a private key (x).
+--
+-- > p [sha1]   The hash of the password of the account.
+-- > s [bignum] The salt (s).
+--              If nil a new salt is generated automatically.
+--
+-- <   [bignum] The private key (x) otherwise nil
 -- <   [bignum] The salt (s) otherwise nil.
-function _M.v(p, s)
+function _M.x(p, s)
   if not s then
     s = bignum.rand(_M.SALT_NUM_BYTES * 8)
   end
@@ -132,26 +174,14 @@ function _M.v(p, s)
     return nil
   end
 
-  local IP, IP_l = p:get_digest()
-
-  local sha = hash:sha1_init()
-  sha:update(string.reverse(s:bn2bin()), s:num_bytes())
-  sha:update(IP, IP_l)
+  local p, p_l = p:get_digest()
+  local sha = hash.sha1_init()
+  sha:update(_M.bn2bin(s), s:num_bytes())
+  sha:update(p, p_l)
   sha:final()
+
   local digest, digest_l = sha:get_digest()
-
-  local x = bignum.new()
-  x:bin2bn(string.reverse(digest), digest_l)
-
-  local g = bignum.new()
-  g:set_word(_M.g)
-  local N = bignum.new()
-  N:hex2bn(_M.N)
-
-  -- v = g ^ x % N
-  local v = g:mod_exp(x, N)
-
-  return v, s
+  return _M.bin2bn(digest, digest_l), s
 end
 
 return _M

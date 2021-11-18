@@ -32,7 +32,8 @@ local tests = {
     local v = srp.hex2bn("4BEC2A9A0BE2296F67058E1C1AD6FA1EF1E73432BB6872617FA2E3DB7610BB90")
 
     local p = srp.p("username", "password")
-    local verifier, salt = srp.v(p, s)
+    local x, salt = srp.x(p, s)
+    local verifier = srp.v(x)
     if v:__tostring() == verifier:__tostring() and s:__tostring() == salt:__tostring() then chk = ok end
 
     return chk, desc
@@ -47,9 +48,9 @@ local tests = {
 
     local p = srp.p(username, password)
 
-    local v, s = srp.v(p)
+    local x, s = srp.x(p)
+    local v = srp.v(x)
     local A, a = user.A()
-    local x = user.x(p, s)
 
     local B, b = host.B(v)
     local u = srp.u(A, B)
