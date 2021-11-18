@@ -1,8 +1,6 @@
 local bignum = require("bignum")
 local hash = require("hash")
 local srp = require("srp")
-local host = require("srp/host")
-local user = require("srp/user")
 
 local ok = "\27[32mOK\27[0m "
 local nok = "\27[31mnok\27[0m"
@@ -54,8 +52,8 @@ local tests = {
 
     local B, b = srp.B(v)
     local u = srp.u(A, B)
-    local K1 = user.S_user(a, B, u, x)
-    local K2 = host.S_host(b, A, u, v)
+    local K1 = srp.S_user(a, B, u, x)
+    local K2 = srp.S_host(b, A, u, v)
 
     if K1:__tostring() == K2:__tostring() then chk = ok end
 

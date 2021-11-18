@@ -174,6 +174,44 @@ function _M.p(username, password)
   return sha
 end
 
+-- # S_host
+-- Generates a session key (S).
+-- The host MUST abort the authentication attempt if A % N is zero.
+--
+-- > b [bignum] The host secret ephemeral (b).
+-- > A [bignum] The user public ephemeral (A).
+-- > u [bignum] The random scrambling parameter (u).
+-- > v [bignum] The password verifier (v).
+--
+-- <   [bignum] The session key (S) otherwise nil.
+function _M.S_host(b, A, u, v)
+  local N = _M.hex2bn(_M.N)
+
+  if A:is_zero() or (A % N):is_zero() then
+    return nil
+  end
+
+  -- S = (A * (v ^ u % N)) ^ b % N
+  return (A * v:mod_exp(u, N)):mod_exp(b, N)
+end
+
+-- # S_user
+-- Generates a session key (S).
+--
+-- > a [bignum] The user secret ephemeral (a).
+-- > B [bignum] The host public ephemeral (B).
+-- > u [bignum] The random scrambling parameter (u).
+-- > x [bignum] The private key (x).
+--
+-- <   [bignum] The session key (S) otherwise nil.
+function _M.S_user(a, B, u, x)
+  local g = _M.dec2bn(_M.g)
+  local N = _M.hex2bn(_M.N)
+  local k = _M.dec2bn(_M.k)
+
+  return (B - k * g:mod_exp(x, N)):mod_exp(a + u * x, N)
+end
+
 -- # u
 -- Generates a random scrambling parameter (u).
 --
