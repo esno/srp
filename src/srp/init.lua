@@ -150,7 +150,72 @@ function _M.K(S)
     token = token .. K1:sub(i, i) .. K2:sub(i, i)
   end
 
-  return _M.bin2bn(token, K1_l * 2)
+  return _M.bin2bn(token, K1_l + K2_l)
+end
+
+-- # M1
+-- Generates the authentication proof (M1).
+--
+-- > I [string] The account identifier (I).
+-- > s [bignum] The salt (s).
+-- > A [bignum] The user public ephemeral (A).
+-- > B [bignum] The host public ephemeral (B).
+-- > K [bignum] The strong session key (K).
+-- > g [bignum] The generator (g).
+-- > N [bignum] The prime number (N).
+--
+-- <   [bignum] THe authentication proof (M1).
+function _M.M1(I, s, A, B, K, g, N)
+  local sha = hash.sha1_init()
+  sha:update(g)
+  sha:final()
+  local g, g_l = sha:get_digest()
+
+  local sha = hash.sha1_init()
+  sha:update(N)
+  sha:final()
+  local N, N_l = sha:get_digest()
+
+  local token = ""
+  for i = 1, N_l do
+    token = token .. N:sub(i, i) ~ g:sub(i, i)
+  end
+
+  local sha = hash.sha1_init()
+  sha:update(I)
+  sha:final()
+  local I, I_l = sha:get_digest()
+
+  local sha = hash.sha1_init()
+  sha:update(token, N_l)
+  sha:update(I, I_l)
+  sha:update(srp.bn2bin(s), s:num_bytes())
+  sha:update(srp.bn2bin(A), A:num_bytes())
+  sha:update(srp.bn2bin(B), B:num_bytes())
+  sha:update(srp.bn2bin(K), K:num_bytes())
+  sha:final()
+  local M, M_l = sha:get_digest()
+  srp.bin2bn(M, M_l)
+
+  return M
+end
+
+-- M2
+-- Generates the authentication proof (M2).
+--
+-- > A  [bignum] The user public ephemeral (A).
+-- > M1 [bignum] The authentication proof (M1).
+-- > K  [bignum] The strong session key (K).
+--
+-- <    [sha1]   The authentication proof (M2).
+function _M.M2(A, M1, K)
+  local sha = hash.sha1_init()
+  sha:update(A:bn2bin(), A:num_bytes())
+  sha:update(M1:bn2bin(), M1:num_bytes())
+  sha:update(K:bn2bin(), K:num_bytes())
+  sha:final()
+
+  return sha
 end
 
 -- # p
