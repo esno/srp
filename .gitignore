@@ -1,2 +1,6 @@
 /build
+/dist/pkg
+/dist/src
+/dist/srp
+/dist/*.pkg.tar.zst
 *.patch

@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - master
+    tags:
+      - '*'
 
 jobs:
   qa:
@@ -41,7 +43,7 @@ jobs:
       - name: test
         run: ${{ matrix.bin }} test.lua
 
-  pkg:
+  release:
     runs-on: ubuntu-latest
     container: archlinux:latest
     needs: qa
@@ -53,10 +55,60 @@ jobs:
       - name: prepare
         run: |
           pacman -Sy --noconfirm base-devel git cmake openssl lua lua53
-          useradd -m -d /__w/srp/srp -s /bin/bash build
+          useradd -d /__w/srp/srp -s /bin/bash build
           chown -R build /__w/srp/srp
+
+      - name: gather version
+        if: startsWith(github.ref, 'refs/tags/')
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
 
       - name: package
         run: |
           cd dist
-          su build -c makepkg
+          su build -c "makepkg PKGVERSION=${{ steps.get_version.outputs.VERSION }}"
+
+      - name: release
+        if: startsWith(github.ref, 'refs/tags/')
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.token }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: upload wowpasswd
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/wowpasswd-${{ steps.get_version.outputs.VERSION }}-1-x86_64.pkg.tar.zst
+          asset_name: wowpasswd-${{ steps.get_version.outputs.VERSION }}-1-x86_64.pkg.tar.zst
+          asset_content_type: application/zstd
+
+      - name: upload lua53-srp
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/lua53-srp-${{ steps.get_version.outputs.VERSION }}-1-x86_64.pkg.tar.zst
+          asset_name: lua53-srp-${{ steps.get_version.outputs.VERSION }}-1-x86_64.pkg.tar.zst
+          asset_content_type: application/zstd
+
+      - name: upload lua-srp
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/lua-srp-${{ steps.get_version.outputs.VERSION }}-1-x86_64.pkg.tar.zst
+          asset_name: lua-srp-${{ steps.get_version.outputs.VERSION }}-1-x86_64.pkg.tar.zst
+          asset_content_type: application/zstd

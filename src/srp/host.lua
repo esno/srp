@@ -1,6 +1,7 @@
 local authcodes = require("wow/authcodes")
 local srp = require("wow/srp")
 
+local _meta = {}
 local _M = {}
 
 -- logon_proof

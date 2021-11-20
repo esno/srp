@@ -10,11 +10,15 @@ depends=('openssl')
 source=('git+https://github.com/esno/srp.git#branch=master')
 md5sums=('SKIP')
 pkgrel=1
-pkgver=de0257d
+pkgver=0.0.1
 
 pkgver() {
   cd "$srcdir/srp"
-  git rev-parse --short HEAD
+  if [ -z "$PKGVERSION" ]; then
+    git rev-parse --short HEAD
+  else
+    echo "${PKGVERSION}"
+  fi
 }
 
 _build() {
