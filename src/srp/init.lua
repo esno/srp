@@ -69,15 +69,14 @@ end
 -- The host MUST send B after receiving A from the client, never before.
 --
 -- > v [bignum] The password verifier (v).
+-- > g [bignum] The generator (g).
+-- > N [bignum] The prime (N).
+-- > k [bignum] The multiplier (k).
 --
 -- <   [bignum] The public ephemeral B otherwise nil.
 -- <   [bignum] The secret ephemeral b otherwise nil.
-function _M.B(v)
+function _M.B(v, g, N, k)
   local b = bignum.rand(_M.EPHEMERAL_NUM_BYTES * 8)
-
-  local g = _M.dec2bn(_M.g)
-  local N = _M.hex2bn(_M.N)
-  local k = _M.dec2bn(_M.k)
 
   -- gmod = g ^ b % N
   local gmod = g:mod_exp(b, N)
@@ -182,11 +181,10 @@ end
 -- > A [bignum] The user public ephemeral (A).
 -- > u [bignum] The random scrambling parameter (u).
 -- > v [bignum] The password verifier (v).
+-- > N [bignum] The prime number (N).
 --
 -- <   [bignum] The session key (S) otherwise nil.
-function _M.S_host(b, A, u, v)
-  local N = _M.hex2bn(_M.N)
-
+function _M.S_host(b, A, u, v, N)
   if A:is_zero() or (A % N):is_zero() then
     return nil
   end
@@ -217,12 +215,10 @@ end
 --
 -- > A [bignum] The user public ephemeral (A).
 -- > B [bignum] The host public ephemeral (B).
+-- > N [bignum] The prime number (N).
 --
 -- <   [bignum] The random scrambling parameter (u).
-function _M.u(A, B)
-  local N = bignum.new()
-  N:hex2bn(_M.N)
-
+function _M.u(A, B, N)
   if A:is_zero() or (A % N):is_zero() then
     return nil
   end

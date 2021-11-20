@@ -1,6 +1,6 @@
 local bignum = require("bignum")
 local hash = require("hash")
-local srp = require("srp")
+local srp = require("wow.srp")
 
 local ok = "\27[32mOK\27[0m "
 local nok = "\27[31mnok\27[0m"
@@ -41,6 +41,10 @@ local tests = {
     local desc = "check session key computation"
     local chk = nil
 
+    local g = srp.dec2bn(srp.g)
+    local N = srp.hex2bn(srp.N)
+    local k = srp.dec2bn(srp.k)
+
     local username = "username"
     local password = "password"
 
@@ -50,10 +54,10 @@ local tests = {
     local v = srp.v(x)
     local A, a = srp.A()
 
-    local B, b = srp.B(v)
-    local u = srp.u(A, B)
+    local B, b = srp.B(v, g, N, k)
+    local u = srp.u(A, B, N)
     local K1 = srp.S_user(a, B, u, x)
-    local K2 = srp.S_host(b, A, u, v)
+    local K2 = srp.S_host(b, A, u, v, N)
 
     if K1:__tostring() == K2:__tostring() then chk = ok end
 
