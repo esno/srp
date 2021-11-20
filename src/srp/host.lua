@@ -23,8 +23,8 @@ function _meta.logon_proof(self, A, M)
   self.K = srp.K(self.S)
 
   self.M1 = srp.M1(self.I, self.s, self.A, self.B, self.K, self.g, self.N)
-  local M1, M1_l = self.M1
-  for i = 1, M1_l do
+  local M1 = self.M1:bn2bin()
+  for i = 1, self.M1:num_bytes() do
     if M1:sub(i, i) ~= M:sub(i, i) then
       return authcodes.error_noaccess
     end
