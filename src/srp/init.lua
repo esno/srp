@@ -48,7 +48,7 @@ end
 -- <     [bignum] The bignum representing the binary string.
 function _M.bin2bn(bin, l)
   local bn = bignum.new()
-  bn:bin2bn(string.reverse(bin), l)
+  bn:bin2bn(bin:reverse(), l)
   return bn
 end
 
@@ -60,7 +60,7 @@ end
 --
 -- <    [string] The binary string representing the bignum.
 function _M.bn2bin(bn)
-  return string.reverse(bn:bn2bin())
+  return bn:bn2bin():reverse()
 end
 
 -- # B
@@ -233,7 +233,7 @@ function _M.p(username, password)
   end
 
   local sha = hash.sha1_init()
-  sha:update(string.format("%s:%s", string.upper(username), string.upper(password)))
+  sha:update(("%s:%s"):format(username:upper(), password:upper()))
   sha:final()
   return sha
 end

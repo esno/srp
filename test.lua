@@ -69,7 +69,7 @@ local ok, desc
 local rc = 0
 for _, test in pairs(tests) do
   ok, desc = test()
-  print(string.format("[%s] %s", ok or nok, desc))
+  print(("[%s] %s"):format(ok or nok, desc))
   if not ok then rc = 1 end
 end
 
