@@ -189,13 +189,13 @@ function _M.M1(I, s, A, B, K, g, N)
   local sha = hash.sha1_init()
   sha:update(token, N_l)
   sha:update(I, I_l)
-  sha:update(srp.bn2bin(s), s:num_bytes())
-  sha:update(srp.bn2bin(A), A:num_bytes())
-  sha:update(srp.bn2bin(B), B:num_bytes())
-  sha:update(srp.bn2bin(K), K:num_bytes())
+  sha:update(_M.bn2bin(s), s:num_bytes())
+  sha:update(_M.bn2bin(A), A:num_bytes())
+  sha:update(_M.bn2bin(B), B:num_bytes())
+  sha:update(_M.bn2bin(K), K:num_bytes())
   sha:final()
   local M, M_l = sha:get_digest()
-  srp.bin2bn(M, M_l)
+  M = _M.bin2bn(M, M_l)
 
   return M
 end
