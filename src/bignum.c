@@ -65,6 +65,21 @@ static int bignum_bn2bin(lua_State *L) {
   return 1;
 }
 
+static int bignum_bn2hex(lua_State *L) {
+  bignum_udata_t *udata = luaL_checkudata(L, 1, SRP_BIGNUM_MTABLE);
+  unsigned char *number = BN_bn2hex(udata->bn);
+
+  if (number == NULL) {
+    lua_pushnil(L);
+    lua_pushstring(L, "cannot convert bignum to hex");
+    return 2;
+  }
+
+  lua_pushstring(L, number);
+  OPENSSL_free((void *) number);
+  return 1;
+}
+
 static int bignum_hex2bn(lua_State *L) {
   bignum_udata_t *udata = luaL_checkudata(L, 1, SRP_BIGNUM_MTABLE);
   const char *str = luaL_checkstring(L, 2);
@@ -207,21 +222,6 @@ static int bignum_sub(lua_State *L) {
   return 1;
 }
 
-static int bignum_tostring(lua_State *L) {
-  bignum_udata_t *udata = luaL_checkudata(L, 1, SRP_BIGNUM_MTABLE);
-  unsigned char *number = BN_bn2hex(udata->bn);
-
-  if (number == NULL) {
-    lua_pushnil(L);
-    lua_pushstring(L, "cannot convert bignum to hex");
-    return 2;
-  }
-
-  lua_pushstring(L, number);
-  OPENSSL_free((void *) number);
-  return 1;
-}
-
 static const struct luaL_Reg bignum[] = {
   { "new", bignum_new },
   { "rand", bignum_rand },
@@ -234,9 +234,10 @@ static const struct luaL_Reg bignum_mtable[] = {
   { "__mod", bignum_mod },
   { "__mul", bignum_mul },
   { "__sub", bignum_sub },
-  { "__tostring", bignum_tostring },
+  { "__tostring", bignum_bn2hex },
   { "bin2bn", bignum_bin2bn },
   { "bn2bin", bignum_bn2bin },
+  { "bn2hex", bignum_bn2hex },
   { "hex2bn", bignum_hex2bn },
   { "is_zero", bignum_is_zero },
   { "mod_exp", bignum_mod_exp },
