@@ -123,11 +123,12 @@ end
 --
 -- <   [bignum] the strong session key (K).
 function _M.K(S)
+  local K_l = S:num_bytes() / 2
   local S = _M.bn2bin(S)
   local pos
 
   local K1, K2 = "", ""
-  for i = 1, 16 do
+  for i = 1, K_l do
     pos = i * 2 - 1
     K1 = K1 .. S:sub(pos, pos)
 
@@ -136,12 +137,12 @@ function _M.K(S)
   end
 
   local sha = hash.sha1_init()
-  sha:update(K1, 16)
+  sha:update(K1, K_l / 2)
   sha:final()
   local K1, K1_l = sha:get_digest()
 
   local sha = hash.sha1_init()
-  sha:update(token, 16)
+  sha:update(token, K_l / 2)
   sha:final()
   local K2, K2_l = sha:get_digest()
 
