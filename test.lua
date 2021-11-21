@@ -1,3 +1,5 @@
+#!/usr/bin/env lua
+
 local bignum = require("bignum")
 local hash = require("hash")
 local srp = require("wow.srp")
@@ -56,10 +58,10 @@ local tests = {
 
     local B, b = srp.B(v, g, N, k)
     local u = srp.u(A, B, N)
-    local K1 = srp.S_user(a, B, u, x)
-    local K2 = srp.S_host(b, A, u, v, N)
+    local S1 = srp.S_user(a, B, u, x)
+    local S2 = srp.S_host(b, A, u, v, N)
 
-    if K1:__tostring() == K2:__tostring() then chk = ok end
+    if S1:__tostring() == S2:__tostring() then chk = ok end
 
     return chk, desc
   end
