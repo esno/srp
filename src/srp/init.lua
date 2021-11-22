@@ -168,19 +168,16 @@ end
 -- <   [bignum] THe authentication proof (M1).
 function _M.M1(I, s, A, B, K, g, N)
   local sha = hash.sha1_init()
-  sha:update(g)
+  sha:update(_M.bn2bin(g), g:num_bytes())
   sha:final()
-  local g, g_l = sha:get_digest()
+  local g = sha
 
   local sha = hash.sha1_init()
-  sha:update(N)
+  sha:update(_M.bn2bin(N), N:num_bytes())
   sha:final()
-  local N, N_l = sha:get_digest()
+  local N = sha
 
-  local token = ""
-  for i = 1, N_l do
-    token = token .. N:sub(i, i) ~ g:sub(i, i)
-  end
+  local token = N ~ g
 
   local sha = hash.sha1_init()
   sha:update(I)
@@ -188,7 +185,7 @@ function _M.M1(I, s, A, B, K, g, N)
   local I, I_l = sha:get_digest()
 
   local sha = hash.sha1_init()
-  sha:update(token, N_l)
+  sha:update(token, token:len())
   sha:update(I, I_l)
   sha:update(_M.bn2bin(s), s:num_bytes())
   sha:update(_M.bn2bin(A), A:num_bytes())
