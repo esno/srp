@@ -22,17 +22,17 @@ local _M = {
 -- a is a random number with length of `EPHEMERAL_NUM_BYTES`.
 -- The client MUST abort authentication if B % N is zero.
 --
--- <          [bignum] The public ephemeral A otherwise nil.
--- <          [bignum] The secret ephemeral a otherwise nil.
-function _M.A()
+-- > g [bignum] The generator (g).
+-- > N [bignum] The prime (N).
+--
+-- <   [bignum] The public ephemeral A otherwise nil.
+-- <   [bignum] The secret ephemeral a otherwise nil.
+function _M.A(g, N)
   local a = bignum.rand(_M.EPHEMERAL_NUM_BYTES * 8)
 
   if a:is_zero() then
     return nil
   end
-
-  local g = _M.dec2bn(_M.g)
-  local N = _M.hex2bn(_M.N)
 
   -- A = g ^ a % N
   return g:mod_exp(a, N), a
@@ -266,14 +266,14 @@ end
 -- > B [bignum] The host public ephemeral (B).
 -- > u [bignum] The random scrambling parameter (u).
 -- > x [bignum] The private key (x).
+-- > g [bignum] The generator (g).
+-- > N [bignum] The prime number (N).
+-- > k [bignum] The multiplier (k).
 --
 -- <   [bignum] The session key (S) otherwise nil.
-function _M.S_user(a, B, u, x)
-  local g = _M.dec2bn(_M.g)
-  local N = _M.hex2bn(_M.N)
-  local k = _M.dec2bn(_M.k)
-
-  return (B - k * g:mod_exp(x, N)):mod_exp(a + u * x, N)
+function _M.S_user(a, B, u, x, g, N, k)
+  local gmod = g:mod_exp(x, N)
+  return (B - k * gmod):mod_exp(a + u * x, N)
 end
 
 -- # u
@@ -302,14 +302,11 @@ end
 -- Generates the password verifier (v).
 --
 -- > x [bignum] The private key (x).
+-- > g [bignum] The generator (g).
+-- > N [bignum] The prime number (N).
 --
 -- <   [bignum] The password verifier (v) otherwise nil.
-function _M.v(x)
-  local g = bignum.new()
-  g:set_word(_M.g)
-  local N = bignum.new()
-  N:hex2bn(_M.N)
-
+function _M.v(x, g, N)
   -- v = g ^ x % N
   return g:mod_exp(x, N)
 end
