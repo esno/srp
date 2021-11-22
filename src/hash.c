@@ -17,6 +17,24 @@ typedef struct {
   int _final;
 } hash_udata_t;
 
+static int hash_sha1_bxor(lua_State *L) {
+  unsigned char r[SHA_DIGEST_LENGTH];
+  hash_udata_t *a = luaL_checkudata(L, 1, SRP_SHA1_MTABLE);
+  hash_udata_t *b = luaL_checkudata(L, 2, SRP_SHA1_MTABLE);
+  int i = 0;
+
+  if (a->_final != 1 || b->_final != 1) {
+    lua_pushnil(L);
+    return 1;
+  }
+
+  for (i = 0; i < SHA_DIGEST_LENGTH; ++i)
+    r[i] = a->digest[i] ^ b->digest[i];
+
+  lua_pushlstring(L, r, SHA_DIGEST_LENGTH);
+  return 1;
+}
+
 static int hash_sha1_final(lua_State *L) {
   hash_udata_t *udata = luaL_checkudata(L, 1, SRP_SHA1_MTABLE);
 
@@ -109,6 +127,7 @@ static const struct luaL_Reg hash[] = {
 };
 
 static const struct luaL_Reg sha1_mtable[] = {
+  { "__bxor", hash_sha1_bxor },
   { "__tostring", hash_sha1_tostring },
   { "final", hash_sha1_final },
   { "get_digest", hash_sha1_get_digest },
