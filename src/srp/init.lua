@@ -142,7 +142,7 @@ function _M.K(S)
   local K1, K1_l = sha:get_digest()
 
   local sha = hash.sha1_init()
-  sha:update(token, K_l / 2)
+  sha:update(K2, K_l / 2)
   sha:final()
   local K2, K2_l = sha:get_digest()
 
