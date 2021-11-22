@@ -2,7 +2,9 @@
 
 local bignum = require("bignum")
 local hash = require("hash")
-local srp = require("wow.srp")
+local srp = require("wow/srp")
+local srphost = require("wow/srp/host")
+local srpuser = require("wow/srp/user")
 
 local ok = "\27[32mOK\27[0m "
 local nok = "\27[31mnok\27[0m"
@@ -33,7 +35,7 @@ local tests = {
 
     local p = srp.p("username", "password")
     local x, salt = srp.x(p, s)
-    local verifier = srp.v(x)
+    local verifier = srp.v(x, srp.dec2bn(srp.g), srp.hex2bn(srp.N))
     if v:__tostring() == verifier:__tostring() and s:__tostring() == salt:__tostring() then chk = ok end
 
     return chk, desc
@@ -43,25 +45,16 @@ local tests = {
     local desc = "check session key computation"
     local chk = nil
 
-    local g = srp.dec2bn(srp.g)
-    local N = srp.hex2bn(srp.N)
-    local k = srp.dec2bn(srp.k)
-
     local username = "username"
     local password = "password"
+    local s = "C87C2F705F3A3DE385F4F0E49386D6688061AF13DB4653AD434C82015ECA2969"
+    local v = "4BEC2A9A0BE2296F67058E1C1AD6FA1EF1E73432BB6872617FA2E3DB7610BB90"
 
-    local p = srp.p(username, password)
+    local host = srphost.auth_challenge(username, v, s)
+    local user = srpuser.auth_challenge(username, password, host.s:bn2hex(), host.B:bn2hex(), srp.g, srp.N)
+    host:logon_proof(user.A:bn2hex(), user.M1:bn2hex())
 
-    local x, s = srp.x(p)
-    local v = srp.v(x)
-    local A, a = srp.A()
-
-    local B, b = srp.B(v, g, N, k)
-    local u = srp.u(A, B, N)
-    local S1 = srp.S_user(a, B, u, x)
-    local S2 = srp.S_host(b, A, u, v, N)
-
-    if S1:__tostring() == S2:__tostring() then chk = ok end
+    if host.S:__tostring() == user.S:__tostring() then chk = ok end
 
     return chk, desc
   end
