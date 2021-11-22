@@ -4,15 +4,41 @@ this lua module implements the SRP authentication mechanism for WoW.
 SRP is a secure password-based authentication and key-exchange protocol.
 Using SRP avoids sending the plaintext password unencrypted.
 
-## example client
+## authentication workflow
 
-the example client creates `v` and `s` values that can be inserted into the accounts table of
-your realmd database.
+    User                                     Host
+     |                                         |
+     |                                         |
+     |   authentication challenge request      | (I)
+     | --------------------------------------> |
+     |                                         |
+     |   authentication challenge response     | (B, g, N, s)
+     | <-------------------------------------- |
+     |                                         |
+     |   authentication logon proof request    | (A, M1)
+     | --------------------------------------> |
+     |                                         |
+     |   authentication logon proof response   | (M2)
+     | <-------------------------------------- |
+     |                                         |
 
-    $ wowpasswd johndoe
-    Password: topsecret
-    v: 2AC0D7DA1BB846EE917B281A9C01C5E0E7A0B121AC51F5C77F4F26522D71F1C6
-    s: AA8B4FFC9D83B3A5F2EA919A53991183B7860F298A59E9999742F1FA9F52FC23
+> The host MUST send B after receiving A from the client, never before.
+[RFC2945](https://datatracker.ietf.org/doc/html/rfc2945)
+
+This is a deviation of the origin SRP specification where [RFC5054](https://datatracker.ietf.org/doc/html/rfc5054)
+requires to send the host public ephemeral (B) in it's server key exchange message.
+
+### authentication challenge
+
+The user starts the authentication by sending a authentication challenge request.
+
+    | command | error | packet size | game name | version 1 | version 2 | version 3 | build | platform | OS | locale | timezone bias | ip address | I length | I |
+
+The value of command for the authentication challenge is `0x00`.
+
+The host responds by sending a response.
+
+    | command | error | B | g length | g | N length | N | s |
 
 ## build from source
 
