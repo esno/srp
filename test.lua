@@ -52,9 +52,10 @@ local tests = {
 
     local host = srphost.auth_challenge(username, v, s)
     local user = srpuser.auth_challenge(username, password, host.s:bn2hex(), host.B:bn2hex(), srp.g, srp.N)
-    host:logon_proof(user.A:bn2hex(), user.M1:bn2hex())
 
-    if host.S:__tostring() == user.S:__tostring() then chk = ok end
+    if host:logon_proof(user.A:bn2hex(), user.M1:bn2hex()) then
+      if user:logon_proof(host.M2) then chk = ok end
+    end
 
     return chk, desc
   end

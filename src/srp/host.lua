@@ -49,9 +49,9 @@ end
 --
 -- <   [table]  The SRP table otherwise nil on error.
 function _M.auth_challenge(I, v, s, g, N, k)
-  local t = {
-    logon_proof = logon_proof
-  }
+  local t = {}
+
+  t.logon_proof = logon_proof
 
   t.g = srp.dec2bn(g or srp.g)
   t.N = srp.hex2bn(N or srp.N)

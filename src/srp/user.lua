@@ -2,6 +2,20 @@ local srp = require("wow/srp")
 
 local _M = {}
 
+local logon_proof = function(self, M)
+  self.M2 = srp.M2(self.A, self.M1, self.K)
+  local M2, M2_l = self.M2:get_digest()
+  local M, M_l = M:get_digest()
+
+  for i = 1, M2_l do
+    if M2:sub(i, i) ~= M:sub(i, i) then
+      return nil
+    end
+  end
+
+  return true
+end
+
 -- # auth_challenge
 -- Create a new SRP table and process authentication challenge response.
 --
@@ -17,6 +31,8 @@ local _M = {}
 -- <          [table]  The SRP table otherwise nil on error.
 function _M.auth_challenge(I, password, s, B, g, N, k)
   local t = {}
+
+  t.logon_proof = logon_proof
 
   t.k = srp.dec2bn(k or srp.k)
 
