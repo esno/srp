@@ -1,8 +1,8 @@
-# SRP module for WoW emulators
-
-this lua module implements the SRP authentication mechanism for WoW.
+# SecureRemotePassword protocol for WoW
+ 
 SRP is a secure password-based authentication and key-exchange protocol.
 Using SRP avoids sending the plaintext password unencrypted.
+[This lua module](https://github.com/esno/srp) implements the SRP authentication mechanism for WoW.
 
 ## Authentication workflow
 
@@ -47,7 +47,7 @@ Further information can be read [here](http://srp.stanford.edu/).
     | K         | The hashed secret key        |
     | M1        | The first message proof      |
     | M2        | The second message proof     |
-    | N         | A secure/large prime         |
+    | N         | A safe/large prime           |
     | p         | sha1(USERNAME:PASSWORD)      |
     |           | Deviates from RFC where p is |
     |           | the raw password             |
@@ -57,6 +57,29 @@ Further information can be read [here](http://srp.stanford.edu/).
     | v         | The password verifier        |
     | x         | Private key                  |
     |           | Derived from p and s         |
+
+### Calculate salt and verifier
+
+The salt (s) is a random 32 byte large number and the verifier (v)
+is calculated as:
+
+    v = g ^ x % N
+
+While `N` is a large prime number, it may take a lot of time to compute one
+therefore most implementations use static values for `g` and `N`.
+
+[MaNGOS](https://getmangos.eu) based emulators are using this values:
+
+    N = 894B645E89E1535BBDAD5B8B290650530801B18EBFBF5E8FAB3C82872A3E9BB7
+    g = 7
+
+Those values could be variable per account since the client extracts them from
+the initial authentication challenge response. Changing such values afterwards
+will break already calculated password verifier.
+
+The value of `x` can be generated as sha1 hash of the salt concatenated with
+a sha1 hash of the string `USERNAME:PASSWORD`. The official clients convert
+all lowercase letters into it's uppercase equivalent.
 
 ## Build from source
 
@@ -70,7 +93,7 @@ srp works properly with at least lua 5.3
     $ cmake .. && make
     $ sudo make install
 
-### uninstall
+### Uninstall
 
 `make install` generates the file `install_manifest.txt` in your build directory.
 This can be used to delete all installed files.
