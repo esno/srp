@@ -31,6 +31,7 @@ jobs:
 
       - name: prepare
         run: |
+          yes | pacman -Syu --noconfirm
           pacman -Sy --noconfirm base-devel cmake openssl ${{ matrix.pkg }}
 
       - name: build
@@ -54,6 +55,7 @@ jobs:
 
       - name: prepare
         run: |
+          yes | pacman -Syu --noconfirm
           pacman -Sy --noconfirm base-devel git cmake openssl lua lua53
           useradd -d /__w/srp/srp -s /bin/bash build
           chown -R build /__w/srp/srp
