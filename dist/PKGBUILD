@@ -10,7 +10,7 @@ depends=('openssl')
 source=('git+https://github.com/esno/srp.git#branch=master')
 md5sums=('SKIP')
 pkgrel=1
-pkgver=0.0.1
+pkgver=a3411b2
 
 pkgver() {
   cd "$srcdir/srp"
@@ -43,7 +43,7 @@ build() {
 }
 
 package_lua-srp() {
-  depends+=('lua54')
+  depends+=('lua')
   _package "LUA54"
 }
 

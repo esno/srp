@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
 
-local srp = require("srp")
+local srp = require("wow/srp")
 
 if #arg ~= 1 then
   print("USAGE: wowpasswd <username>")
