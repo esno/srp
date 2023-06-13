@@ -11,7 +11,9 @@ local username = arg[1]
 io.write("Password: ")
 local password = io.read()
 
-local v, s = srp.mkverifier(username, password)
+local p = srp.p(username, password)
+local x, s = srp.x(p, nil)
+local v = srp.v(x, srp.dec2bn(srp.g), srp.hex2bn(srp.N))
 
 print("v: " .. tostring(v))
 print("s: " .. tostring(s))
